@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="css/bootstrap.css" rel="stylesheet" />
+  <link href="DataTables/datatables.css" rel="stylesheet" />
+  <link href="DataTables/DataTables-1.12.1/css/dataTables.bootstrap5.css" rel="stylesheet" />
+  <link href="font-awesome/css/font-awesome.css" rel="stylesheet" />
+  <link href="dist/css/bootstrap-datepicker3.css" />
+  <title>Page Title</title>
+</head>
+<input type="hidden" id="hPhoto" />
+
+<body class="container">
+  <nav class="navbar bg-light">
+    <div class="container-fluid">
+      <a class="navbar-brand">Test Employee</a>
+      <form class="d-flex" role="search">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
+    </div>
+  </nav>
+
+  <br>
+  <div mb-3>
+    <table id="listado" class="table table-striped table-bordered" style="width:100%">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>LastName</th>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Photo</th>
+          <th>HiringDate</th>
+          <th></th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+
+
+  <!-- Modal -->
+  <div class="modal modal-xl fade" id="modalData" tabindex="-1" aria-labelledby="modalData" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="lblTitle"></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form enctype="multipart/form-data">
+            <div class="row">
+              <div class="col">
+                <div class="row">
+                  <div class="col">
+                    <label for="message-text" class="col-form-label">Id:</label>
+                    <input type="text" class="form-control" id="txtId" disabled></input>
+                  </div>
+                  <div class="col">
+                    <label for="message-text" class="col-form-label">Name:</label>
+                    <input type="text" class="form-control" id="txtName"></input>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <label for="message-text" class="col-form-label">Last Name:</label>
+                    <input type="text" class="form-control" id="txtLastName"></input>
+                  </div>
+                  <div class="col">
+                    <label for="message-text" class="col-form-label">Phone:</label>
+                    <input type="text" class="form-control" id="txtPhone"></input>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <label for="message-text" class="col-form-label">Email:</label>
+                    <input type="text" class="form-control" id="txtEmail"></input>
+                  </div>
+                  <div class="col">
+                    <label for="message-text" class="col-form-label">Photo:</label>
+                    <input type="file" class="form-control" id="txtFile" />
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <label for="message-text" class="col-form-label">Hiring Date:</label>
+                    <input type="text" class="form-control" id="txtHiringDate" data-date-format="mm/dd/yyyy"></input>
+                  </div>
+                </div>
+              </div>
+              <div class="col-3" id="col2">
+                <img id="imgEmp" src="" height="250"
+                  width="250" />
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="ClearModal();">Close</button>
+          <button type="button" class="btn btn-primary" id="btnSave">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="jQuery-3.6.0/jquery-3.6.0.js"></script>
+  <script src="js/bootstrap.js"></script>
+  <script src="DataTables/datatables.js"></script>
+  <script src="DataTables/DataTables-1.12.1/js/dataTables.bootstrap5.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.24/dataRender/datetime.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="dist/js/bootstrap-datepicker.js"></script>
+  <script src="js/SwalAlert.js"></script>
+  <script src="https://momentjs.com/downloads/moment.js"></script>
+  <script src="http://igorescobar.github.io/jQuery-Mask-Plugin/js/jquery.mask.min.js"></script>
+
+  <script>
+    $(document).ready(function () {
+      $('#txtPhone').mask('(000) 000-0000');
+      $('#txtHiringDate').datepicker({
+
+      });
+      $('#listado').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+          url: 'https://localhost:5001/api/Employee',
+          type: "GET",
+          dataSrc: "",
+
+        },
+        "columnDefs":
+          [
+            {
+              "render": function (data, type, full, meta) {
+                return '<div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example"><button type="button" class="btn btn-danger" onclick="Delete(\'' + full.id + '\');return false;"><i class="fa fa-remove"></i></button><button type="button" class="btn btn-success" onclick="Get(\'' + full.id + '\');return false;"><i class="fa fa-edit"></i></button></div>'
+              },
+              "targets": [7],
+            },
+            {
+              targets: 6,
+              render: DataTable.render.datetime('L'),
+            },
+          ],
+        columns: [
+          { data: 'id', name: 'id' },
+          { data: 'name', name: 'name' },
+          { data: 'lastName', name: 'lastName' },
+          { data: 'phone', name: 'phone' },
+          { data: 'email', name: 'email' },
+          {
+            data: 'photo', name: 'photo', render: function (data, type, row, meta) {
+              return '<img src="file:///Users/williansmelende/Projects/IntegraTest/Test/Test/' + data + '" height="50" width="50"/>';
+            }
+          },
+          {
+            data: 'hiringDate', name: 'hiringDate'
+          }
+        ],
+        "dom": "<'row'<'col-sm-6'l><'col-sm-6'<'#buttonContainer.site-datatable-button-container'>f>>" + "<'row'<'col-sm-12'tr>>" + "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+      });
+      $("#buttonContainer")
+        .addClass("pull-right")
+        .append(" <button type='button' class='btn btn-sm btn-primary' onclick='AddModal();return false';><i class='fa fa-file-text-o'></i></button>");
+    });
+
+    function Add() {
+      var id = $('#txtId').val();
+      var name = $('#txtName').val();
+      var lastName = $('#txtLastName').val();
+      var phone = $('#txtPhone').val();
+      var email = $('#txtEmail').val();
+      var photo = $('#txtPhoto').val();
+      var date = $('#txtHiringDate').val();
+      var filePhoto = $('#txtFile')[0];
+
+      var employee = {
+        Id: id,
+        Name: name,
+        LastName: lastName,
+        Phone: phone,
+        Email: email,
+        Photo: photo,
+        HiringDate: date,
+        File: filePhoto.files[0]
+      };
+      var fData = new FormData();
+      fData.append('Id', id);
+      fData.append('Name', name);
+      fData.append('LastName', lastName);
+      fData.append('Email', email);
+      fData.append('Phone', phone);
+      fData.append('Photo', photo);
+      fData.append('HiringDate', date);
+      fData.append('File', filePhoto.files[0]);
+      $.ajax({
+        type: "POST",
+        url: "https://localhost:5001/api/Employee",
+        data: fData,
+        contentType: false,
+        processData: false,
+        success: function (result) {
+          if ($.trim(result._return)) {
+            $('#modalData').modal('hide');
+            ClearModal();
+            $("#listado").DataTable().ajax.reload();
+            Success('Guardado Exitosamente!..');
+          } else {
+            Errors('Se produjo un Error al Intentar Guardar');
+          }
+        },
+        error: function (xhr, status, error) {
+          console.log(xhr)
+        }
+      });
+    }
+
+    function Update() {
+      var id = $('#txtId').val();
+      var name = $('#txtName').val();
+      var lastName = $('#txtLastName').val();
+      var phone = $('#txtPhone').val();
+      var email = $('#txtEmail').val();
+      var photo = $('#hPhoto').val();
+      var date = $('#txtHiringDate').val();
+      var filePhoto = $('#txtFile')[0];
+
+      var fData = new FormData();
+      fData.append('Id', id);
+      fData.append('Name', name);
+      fData.append('LastName', lastName);
+      fData.append('Email', email);
+      fData.append('Phone', phone);
+      fData.append('Photo', photo);
+      fData.append('HiringDate', date);
+      fData.append('File', filePhoto.files[0]);
+
+      $.ajax({
+        type: "PUT",
+        url: "https://localhost:5001/api/Employee/" + id,
+        data: fData,
+        contentType: false,
+        processData: false,
+        success: function (result) {
+          if ($.trim(result)) {
+            $('#modalData').modal('hide');
+            ClearModal();
+            Success('Guardado Exitosamente!..');
+            $("#listado").DataTable().ajax.reload();
+          } else {
+            Errors('Se produjo un Error al Intentar Guardar');
+          }
+        },
+        error: function (xhr, status, error) {
+          console.log(xhr)
+        }
+      });
+    }
+    function AddModal() {
+      $('#modalData').modal('show');
+      $('#col2').attr("hidden",true);
+      $('#lblTitle').text('Agregar nuevo empleado');
+      ClearModal();
+    }
+    function Get(id) {
+      $.ajax({
+        type: "GET",
+        url: "https://localhost:5001/api/Employee/" + id,
+        success: function (r) {
+          moment.locale('en');
+          var date = moment(r.result.hiringDate).format('L');
+          $('#txtId').val(r.result.id);
+          $('#txtName').val(r.result.name);
+          $('#txtLastName').val(r.result.lastName);
+          $('#txtPhoto').val(r.result.photo);
+          $('#hPhoto').val(r.result.photo);
+          $('#txtPhone').val(r.result.phone);
+          $('#txtEmail').val(r.result.email);
+          $('#txtHiringDate').val(date);
+          $('#modalData').modal('show');
+          $('#imgEmp').attr('src','file:///Users/williansmelende/Projects/IntegraTest/Test/Test/' + r.result.photo);
+          $('#lblTitle').text('Editar datos del empleado');
+          $('#col2').attr("hidden",false);
+        },
+        error: function (xhr, status, error) {
+          console.log(xhr);
+          Errors(xhr);
+        }
+      });
+    }
+
+    function Delete(id) {
+      $.ajax({
+        type: "GET",
+        url: "https://localhost:5001/api/Employee/" + id,
+        success: function (result) {
+          Swal.fire({
+            title: 'Esta seguro de eliminar el empleado?',
+            text: result.result.name + "," + result.result.lastName + "!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Si!',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'No'
+
+          }).then((result) => {
+            if (result.isConfirmed) {
+              $.ajax({
+                type: "DELETE",
+                url: "https://localhost:5001/api/Employee/" + id,
+                success: function (result) {
+                  if ($.trim(result)) {
+                    $("#listado").DataTable().ajax.reload();
+                    Success('Se ha eliminado con exito.');
+                  }
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+    function ClearModal() {
+      $('#txtId').val('');
+      $('#txtName').val('');
+      $('#txtLastName').val('');
+      $('#txtPhoto').val('');
+      $('#txtPhone').val('');
+      $('#txtFile').val('');
+      $('#txtEmail').val('');
+      $('#txtHiringDate').val('');
+      $('#imgEmp').attr('src','');
+    }
+    $('#btnSave').click(function () {
+      if ($('#txtId').val() == '') {
+        Add();
+      }
+      else {
+        Update();
+      }
+    });
+  </script>
+</body>
+
+</html>
